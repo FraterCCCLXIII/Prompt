@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AdminPostFilters } from "@/components/admin/AdminPostFilters";
 import { AdminPostTable } from "@/components/admin/AdminPostTable";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -26,10 +27,29 @@ export default async function AdminDashboardPage({
     visibility: firstParam(params.visibility) ?? "all",
     reportStatus: firstParam(params.reportStatus) ?? "all",
     sort: firstParam(params.sort) ?? "newest",
+    page: firstParam(params.page) ?? "1",
   };
-  const posts = await getAdminPosts(filters);
+  const { posts, total, page, pageSize, totalPages } = await getAdminPosts(filters);
   const reportedCount = posts.filter((post) => post.reportCount > 0).length;
   const hiddenCount = posts.filter((post) => post.visibility === "hidden").length;
+  const startPost = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endPost = Math.min(total, page * pageSize);
+
+  function pageHref(nextPage: number) {
+    const nextParams = new URLSearchParams();
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (!value || (key !== "page" && value === "all")) {
+        return;
+      }
+
+      nextParams.set(key, key === "page" ? String(nextPage) : value);
+    });
+
+    nextParams.set("page", String(nextPage));
+
+    return `/admin?${nextParams.toString()}`;
+  }
 
   return (
     <AdminShell email={admin.email} active="posts">
@@ -44,13 +64,47 @@ export default async function AdminDashboardPage({
             </h1>
           </div>
           <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-            <span>{posts.length} shown</span>
+            <span>
+              {startPost}-{endPost} of {total} shown
+            </span>
             <span>{reportedCount} flagged</span>
             <span>{hiddenCount} hidden</span>
           </div>
         </div>
         <AdminPostFilters filters={filters} />
         <AdminPostTable posts={posts} />
+        <nav
+          className="mt-6 flex items-center justify-between gap-3 text-sm"
+          aria-label="Admin posts pagination"
+        >
+          {page > 1 ? (
+            <Link
+              href={pageHref(page - 1)}
+              className="rounded-full border border-border px-4 py-2 font-medium hover:bg-accent"
+            >
+              Previous
+            </Link>
+          ) : (
+            <span className="rounded-full border border-border px-4 py-2 text-muted-foreground opacity-60">
+              Previous
+            </span>
+          )}
+          <span className="text-muted-foreground">
+            Page {page} of {totalPages}
+          </span>
+          {page < totalPages ? (
+            <Link
+              href={pageHref(page + 1)}
+              className="rounded-full border border-border px-4 py-2 font-medium hover:bg-accent"
+            >
+              Next
+            </Link>
+          ) : (
+            <span className="rounded-full border border-border px-4 py-2 text-muted-foreground opacity-60">
+              Next
+            </span>
+          )}
+        </nav>
       </div>
     </AdminShell>
   );

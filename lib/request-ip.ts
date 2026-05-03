@@ -1,7 +1,14 @@
 import { headers } from "next/headers";
 
-export async function getRequestIp() {
-  const requestHeaders = await headers();
+function shouldTrustProxyHeaders() {
+  return process.env.PROMPT_TRUST_PROXY_HEADERS === "true";
+}
+
+export function getClientIpFromHeaders(requestHeaders: Headers) {
+  if (!shouldTrustProxyHeaders()) {
+    return null;
+  }
+
   const forwardedFor = requestHeaders.get("x-forwarded-for");
 
   if (forwardedFor) {
@@ -13,4 +20,8 @@ export async function getRequestIp() {
     requestHeaders.get("cf-connecting-ip") ??
     null
   );
+}
+
+export async function getRequestIp() {
+  return getClientIpFromHeaders(await headers());
 }

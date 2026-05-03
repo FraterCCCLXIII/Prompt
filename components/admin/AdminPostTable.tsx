@@ -92,7 +92,6 @@ export function AdminPostTable({ posts }: { posts: AdminPost[] }) {
                   {post.visibility === "hidden" ? (
                     <form action={unhidePostAction}>
                       <input type="hidden" name="id" value={post.id} />
-                      <input type="hidden" name="visibility" value="public" />
                       <Button
                         type="submit"
                         variant="outline"

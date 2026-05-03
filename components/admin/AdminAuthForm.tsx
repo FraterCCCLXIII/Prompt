@@ -31,6 +31,14 @@ export function AdminAuthForm({ mode }: AdminAuthFormProps) {
         autoComplete={mode === "setup" ? "new-password" : "current-password"}
         required
       />
+      {mode === "setup" ? (
+        <Input
+          name="setupSecret"
+          type="password"
+          placeholder="Setup secret"
+          autoComplete="off"
+        />
+      ) : null}
       {state.error ? (
         <p className="text-sm text-destructive" role="alert">
           {state.error}

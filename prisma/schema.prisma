@@ -8,18 +8,20 @@ datasource db {
 }
 
 model Post {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title       String?
-  content     String
-  createdAt   DateTime @default(now())
-  visibility  String   @default("public")
-  ipAddress   String?
-  viewsCount  Int      @default(0)
-  shareCount  Int      @default(0)
-  reportCount Int      @default(0)
-  reportedAt  DateTime?
-  hiddenAt    DateTime?
+  id                 String       @id @default(cuid())
+  slug               String       @unique
+  title              String?
+  content            String
+  createdAt          DateTime     @default(now())
+  visibility         String       @default("public")
+  previousVisibility String?
+  ipAddress          String?
+  viewsCount         Int          @default(0)
+  shareCount         Int          @default(0)
+  reportCount        Int          @default(0)
+  reportedAt         DateTime?
+  hiddenAt           DateTime?
+  reports            PostReport[]
 
   @@index([createdAt])
   @@index([ipAddress])
@@ -53,11 +55,30 @@ model AdminSession {
   @@index([expiresAt])
 }
 
+model AdminLoginAttempt {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
 model BannedIp {
   id        String   @id @default(cuid())
   ipAddress String   @unique
   reason    String?
   createdAt DateTime @default(now())
+}
+
+model PostReport {
+  id          String   @id @default(cuid())
+  postId      String
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  reporterKey String
+  createdAt   DateTime @default(now())
+
+  @@unique([postId, reporterKey])
+  @@index([reporterKey, createdAt])
 }
 
 model SpamSettings {

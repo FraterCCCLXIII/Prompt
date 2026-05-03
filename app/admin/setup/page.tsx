@@ -20,6 +20,7 @@ export default async function AdminSetupPage() {
         </h1>
         <p className="mt-4 text-muted-foreground">
           Set the email and password used to manage posts, reports, and bans.
+          Use the setup secret from your environment file if one is configured.
         </p>
         <AdminAuthForm mode="setup" />
       </section>

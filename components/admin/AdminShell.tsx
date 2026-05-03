@@ -20,8 +20,8 @@ const navItems = [
 
 export function AdminShell({ email, active, children }: AdminShellProps) {
   return (
-    <main className="min-h-dvh md:grid md:grid-cols-[17rem_1fr]">
-      <aside className="flex flex-col border-b border-border px-5 py-4 md:sticky md:top-0 md:min-h-dvh md:border-b-0 md:border-r md:px-6 md:py-6">
+    <main className="min-h-dvh md:grid md:grid-cols-[17rem_1fr] md:items-start">
+      <aside className="flex flex-col border-b border-border px-5 py-4 md:sticky md:top-0 md:h-dvh md:self-start md:overflow-y-auto md:border-b-0 md:border-r md:px-6 md:py-6">
         <div className="flex items-start gap-4">
           <SiteLogoMenu className="shrink-0" />
           <div>

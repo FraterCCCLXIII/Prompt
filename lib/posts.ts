@@ -23,9 +23,10 @@ const postSelect = {
 } satisfies Record<keyof PublicPost, true>;
 
 const SLUG_COUNTER_NAME = "post";
-const POST_VISIBILITIES = ["public", "link-only", "hidden"] as const;
+const PUBLIC_POST_VISIBILITIES = ["public", "link-only"] as const;
 
-export type PostVisibility = (typeof POST_VISIBILITIES)[number];
+export type PublicPostVisibility = (typeof PUBLIC_POST_VISIBILITIES)[number];
+export type PostVisibility = PublicPostVisibility | "hidden";
 
 export function normalizePostContent(content: FormDataEntryValue | string | null) {
   return String(content ?? "")
@@ -43,11 +44,11 @@ export function normalizeOptionalTitle(title: FormDataEntryValue | string | null
 
 export function normalizePostVisibility(
   visibility: FormDataEntryValue | string | null,
-): PostVisibility {
+): PublicPostVisibility {
   const normalized = String(visibility ?? "public").trim();
 
-  return POST_VISIBILITIES.includes(normalized as PostVisibility)
-    ? (normalized as PostVisibility)
+  return PUBLIC_POST_VISIBILITIES.includes(normalized as PublicPostVisibility)
+    ? (normalized as PublicPostVisibility)
     : "public";
 }
 
@@ -66,7 +67,7 @@ export function validatePostContent(content: string) {
 export async function createPost(input: {
   title?: string | null;
   content: string;
-  visibility?: PostVisibility;
+  visibility?: PublicPostVisibility;
   ipAddress?: string | null;
 }) {
   const content = normalizePostContent(input.content);
@@ -85,62 +86,65 @@ export async function createPost(input: {
     if (bannedIp) {
       throw new Error("Posting from this network is currently unavailable.");
     }
+  }
 
-    const settings = await getSpamSettings();
-    const now = new Date();
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
+  const settings = await getSpamSettings();
+  const now = new Date();
+  const startOfDay = new Date(now);
+  startOfDay.setHours(0, 0, 0, 0);
+  const spamIdentityWhere = input.ipAddress
+    ? { ipAddress: input.ipAddress }
+    : { ipAddress: null };
 
-    if (settings.maxPostsPerDay > 0) {
-      const postsToday = await prisma.post.count({
-        where: {
-          ipAddress: input.ipAddress,
-          createdAt: { gte: startOfDay },
-        },
-      });
+  if (settings.maxPostsPerDay > 0) {
+    const postsToday = await prisma.post.count({
+      where: {
+        ...spamIdentityWhere,
+        createdAt: { gte: startOfDay },
+      },
+    });
 
-      if (postsToday >= settings.maxPostsPerDay) {
-        throw new Error(
-          `This network has reached today's limit of ${settings.maxPostsPerDay} posts.`,
-        );
-      }
-    }
-
-    if (settings.cooldownSeconds > 0) {
-      const latestPost = await prisma.post.findFirst({
-        where: { ipAddress: input.ipAddress },
-        select: { createdAt: true },
-        orderBy: { createdAt: "desc" },
-      });
-      const elapsedSeconds = latestPost
-        ? Math.floor((now.getTime() - latestPost.createdAt.getTime()) / 1000)
-        : settings.cooldownSeconds;
-
-      if (elapsedSeconds < settings.cooldownSeconds) {
-        throw new Error(
-          `Please wait ${settings.cooldownSeconds - elapsedSeconds} more seconds before posting again.`,
-        );
-      }
-    }
-
-    if (settings.duplicateWindowHours > 0) {
-      const duplicateWindowStart = new Date(
-        now.getTime() - settings.duplicateWindowHours * 60 * 60 * 1000,
+    if (postsToday >= settings.maxPostsPerDay) {
+      throw new Error(
+        `This network has reached today's limit of ${settings.maxPostsPerDay} posts.`,
       );
-      const duplicatePost = await prisma.post.findFirst({
-        where: {
-          ipAddress: input.ipAddress,
-          content,
-          createdAt: { gte: duplicateWindowStart },
-        },
-        select: { id: true },
-      });
+    }
+  }
 
-      if (duplicatePost) {
-        throw new Error(
-          `This network has already posted the same text in the last ${settings.duplicateWindowHours} hours.`,
-        );
-      }
+  if (settings.cooldownSeconds > 0) {
+    const latestPost = await prisma.post.findFirst({
+      where: spamIdentityWhere,
+      select: { createdAt: true },
+      orderBy: { createdAt: "desc" },
+    });
+    const elapsedSeconds = latestPost
+      ? Math.floor((now.getTime() - latestPost.createdAt.getTime()) / 1000)
+      : settings.cooldownSeconds;
+
+    if (elapsedSeconds < settings.cooldownSeconds) {
+      throw new Error(
+        `Please wait ${settings.cooldownSeconds - elapsedSeconds} more seconds before posting again.`,
+      );
+    }
+  }
+
+  if (settings.duplicateWindowHours > 0) {
+    const duplicateWindowStart = new Date(
+      now.getTime() - settings.duplicateWindowHours * 60 * 60 * 1000,
+    );
+    const duplicatePost = await prisma.post.findFirst({
+      where: {
+        ...spamIdentityWhere,
+        content,
+        createdAt: { gte: duplicateWindowStart },
+      },
+      select: { id: true },
+    });
+
+    if (duplicatePost) {
+      throw new Error(
+        `This network has already posted the same text in the last ${settings.duplicateWindowHours} hours.`,
+      );
     }
   }
 
@@ -184,8 +188,17 @@ export async function incrementPostView(slug: string) {
 }
 
 export async function incrementPostShare(slug: string) {
-  return prisma.post.update({
+  const post = await prisma.post.findUnique({
     where: { slug },
+    select: { id: true },
+  });
+
+  if (!post) {
+    return null;
+  }
+
+  return prisma.post.update({
+    where: { id: post.id },
     data: { shareCount: { increment: 1 } },
     select: { shareCount: true },
   });

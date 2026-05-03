@@ -7,7 +7,11 @@ export async function POST(
 ) {
   const { slug } = await params;
 
-  await incrementPostShare(slug);
+  const share = await incrementPostShare(slug);
+
+  if (!share) {
+    return NextResponse.json({ ok: false }, { status: 404 });
+  }
 
   return NextResponse.json({ ok: true });
 }

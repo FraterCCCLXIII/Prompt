@@ -8,13 +8,23 @@ export type AdminPostFilters = {
   visibility?: string;
   reportStatus?: string;
   sort?: string;
+  page?: string;
 };
+
+export const ADMIN_POSTS_PAGE_SIZE = 25;
+
+function normalizePage(page: string | undefined) {
+  const parsedPage = Number(page);
+
+  return Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+}
 
 export async function getAdminPosts(filters: AdminPostFilters = {}) {
   noStore();
   const where: Prisma.PostWhereInput = {};
   const search = filters.search?.trim();
   const ipAddress = filters.ipAddress?.trim();
+  const page = normalizePage(filters.page);
 
   if (filters.visibility && filters.visibility !== "all") {
     where.visibility = filters.visibility;
@@ -52,22 +62,35 @@ export async function getAdminPosts(filters: AdminPostFilters = {}) {
             ? [{ ipAddress: "asc" }, { createdAt: "desc" }]
             : [{ createdAt: "desc" }, { id: "desc" }];
 
-  return prisma.post.findMany({
-    where,
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      content: true,
-      createdAt: true,
-      visibility: true,
-      ipAddress: true,
-      reportCount: true,
-      reportedAt: true,
-      hiddenAt: true,
-    },
-    orderBy,
-  });
+  const [total, posts] = await prisma.$transaction([
+    prisma.post.count({ where }),
+    prisma.post.findMany({
+      where,
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        visibility: true,
+        ipAddress: true,
+        reportCount: true,
+        reportedAt: true,
+        hiddenAt: true,
+      },
+      orderBy,
+      skip: (page - 1) * ADMIN_POSTS_PAGE_SIZE,
+      take: ADMIN_POSTS_PAGE_SIZE,
+    }),
+  ]);
+
+  return {
+    posts,
+    total,
+    page,
+    pageSize: ADMIN_POSTS_PAGE_SIZE,
+    totalPages: Math.max(1, Math.ceil(total / ADMIN_POSTS_PAGE_SIZE)),
+  };
 }
 
 export async function getBannedIps() {

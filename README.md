@@ -25,6 +25,10 @@ Prompt is a minimalist anonymous posting app. Anyone can write a text post, save
    cp .env.example .env
    ```
 
+   Set `PROMPT_ADMIN_SETUP_SECRET` before exposing the app anywhere public.
+   Keep `PROMPT_TRUST_PROXY_HEADERS="false"` unless the app is behind a
+   trusted proxy or CDN that strips client-supplied forwarding headers.
+
 3. Create the SQLite database and apply migrations:
 
    ```bash
@@ -54,11 +58,13 @@ Open [http://localhost:3000](http://localhost:3000).
 - `/admin/setup` creates the first admin account after install.
 - `/admin/login` signs in an existing admin.
 - `/admin` shows the moderation dashboard.
-- `/admin/settings` changes admin credentials and manages IP bans.
+- `/admin/ip-bans` manages IP bans.
+- `/admin/spam-settings` manages posting and reporting safeguards.
+- `/admin/settings` changes admin credentials.
 
 ## Admin Dashboard
 
-The admin dashboard is intentionally local and simple. On a fresh install, visit `/admin/setup` to create the first admin account with an email and password. After setup, `/admin/login` is used for sign-in.
+The admin dashboard is intentionally local and simple. On a fresh install, set `PROMPT_ADMIN_SETUP_SECRET`, then visit `/admin/setup` to create the first admin account with an email, password, and setup secret. In production, setup is rejected if the secret is missing. After setup, `/admin/login` is used for sign-in.
 
 Admin sessions are stored in an HTTP-only cookie and backed by the `AdminSession` table. Passwords are hashed with Node's built-in `scrypt` before storage.
 
@@ -72,12 +78,14 @@ The dashboard shows:
 - Post preview
 - Actions to hide, delete, clear reports, and ban an IP
 
-The settings page supports:
+The IP bans page supports adding banned IPs with an optional reason and removing IP bans. The spam settings page controls per-IP daily post limits, cooldowns, duplicate content blocking, and the auto-hide report threshold.
+
+The admin settings page supports:
 
 - Changing the admin email
 - Changing the admin password
-- Adding banned IPs with an optional reason
-- Removing IP bans
+
+Changing credentials clears existing admin sessions, including the current one, so sign in again after saving.
 
 ### Resetting an Admin Password
 
@@ -91,11 +99,11 @@ The command prompts for a new password, hashes it with the same `scrypt` passwor
 
 ## Moderation Behavior
 
-Public posts can appear in reading navigation. Link-only posts are readable by direct URL but are excluded from public previous/random/next navigation. Hidden posts are removed from public access.
+Public posts can appear in reading navigation. Link-only posts are readable by direct URL but are excluded from public previous/random/next navigation. Hidden posts are removed from public access. When a hidden post is restored, Prompt preserves whether it was originally public or link-only.
 
-The public report button records a report flag on the post. Reported posts appear in the admin dashboard with their report count.
+The public report button records a report flag on the post. Reports are deduplicated per reporter and rate-limited to reduce abuse. Reported posts appear in the admin dashboard with their report count.
 
-When a post is created, the app stores the request IP address when available. If that IP is banned, post creation is rejected.
+When a post is created, the app stores the request IP address when trusted proxy headers are enabled and available. If that IP is banned, post creation is rejected. If no trusted IP is available, Prompt still applies posting limits to the unknown-IP bucket instead of skipping spam checks entirely.
 
 ## Notes
 

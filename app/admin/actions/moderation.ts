@@ -12,10 +12,25 @@ export async function hidePostAction(formData: FormData) {
     return;
   }
 
+  const post = await prisma.post.findUnique({
+    where: { id },
+    select: { visibility: true, previousVisibility: true },
+  });
+
+  if (!post) {
+    return;
+  }
+
   await prisma.post.update({
     where: { id },
     data: {
       visibility: "hidden",
+      previousVisibility:
+        post.visibility === "hidden"
+          ? post.previousVisibility
+          : post.visibility === "link-only"
+            ? "link-only"
+            : "public",
       hiddenAt: new Date(),
     },
   });
@@ -26,16 +41,25 @@ export async function hidePostAction(formData: FormData) {
 export async function unhidePostAction(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
-  const visibility = String(formData.get("visibility") ?? "public");
 
   if (!id) {
+    return;
+  }
+
+  const post = await prisma.post.findUnique({
+    where: { id },
+    select: { previousVisibility: true },
+  });
+
+  if (!post) {
     return;
   }
 
   await prisma.post.update({
     where: { id },
     data: {
-      visibility: visibility === "link-only" ? "link-only" : "public",
+      visibility: post.previousVisibility === "link-only" ? "link-only" : "public",
+      previousVisibility: null,
       hiddenAt: null,
     },
   });

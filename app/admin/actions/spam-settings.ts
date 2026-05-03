@@ -38,7 +38,7 @@ export async function updateSpamSettingsAction(
   };
 
   await updateSpamSettings(settings);
-  revalidatePath("/admin/settings");
+  revalidatePath("/admin/spam-settings");
 
   return {};
 }
