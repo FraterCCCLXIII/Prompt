@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Shuffle } from "lucide-react";
+import { ArrowLeft, ArrowRight, PencilLine, Shuffle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -51,8 +51,11 @@ export function FloatingPostActions({
         )}
       </nav>
       <div className="absolute bottom-0 right-5 sm:right-8">
-        <Button asChild size="lg">
-          <Link href="/">Write your own</Link>
+        <Button asChild size="lg" className="size-11 px-0 sm:h-12 sm:w-auto sm:px-7">
+          <Link href="/" aria-label="Write your own post">
+            <PencilLine className="size-5 sm:hidden" aria-hidden="true" />
+            <span className="hidden sm:inline">Write your own</span>
+          </Link>
         </Button>
       </div>
     </div>
