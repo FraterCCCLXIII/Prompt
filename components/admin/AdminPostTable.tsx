@@ -37,11 +37,12 @@ function visibilityLabel(visibility: string) {
 export function AdminPostTable({ posts }: { posts: AdminPost[] }) {
   return (
     <div className="overflow-x-auto rounded-[1.5rem] border border-border">
-      <table className="w-full min-w-[980px] text-left text-sm">
+      <table className="w-full min-w-[1080px] text-left text-sm">
         <thead className="border-b border-border bg-accent/60 text-xs uppercase tracking-[0.18em] text-muted-foreground">
           <tr>
             <th className="px-4 py-3">Date</th>
             <th className="px-4 py-3">Post ID</th>
+            <th className="px-4 py-3">Page</th>
             <th className="px-4 py-3">IP address</th>
             <th className="px-4 py-3">Visibility</th>
             <th className="px-4 py-3">Reports</th>
@@ -59,8 +60,14 @@ export function AdminPostTable({ posts }: { posts: AdminPost[] }) {
                 }).format(post.createdAt)}
               </td>
               <td className="px-4 py-4 font-mono text-xs">
-                <Link href={`/p/${post.slug}`} className="underline-offset-4 hover:underline">
-                  {post.id}
+                {post.id}
+              </td>
+              <td className="px-4 py-4 font-mono text-xs">
+                <Link
+                  href={`/p/${post.slug}`}
+                  className="underline-offset-4 hover:underline"
+                >
+                  /p/{post.slug}
                 </Link>
               </td>
               <td className="px-4 py-4 font-mono text-xs">

@@ -1,5 +1,6 @@
 import { AdminSettingsForm } from "@/components/admin/AdminSettingsForm";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { DatabaseBackupForm } from "@/components/admin/DatabaseBackupForm";
 import { getAdminUserForSettings } from "@/lib/admin-data";
 import { requireAdmin } from "@/lib/admin-auth";
 
@@ -20,6 +21,17 @@ export default async function AdminSettingsPage() {
         </h1>
         <div className="mt-8 rounded-[1.5rem] border border-border p-5">
           <AdminSettingsForm email={adminUser?.email ?? admin.email} />
+        </div>
+        <div className="mt-8">
+          <p className="text-sm uppercase tracking-[0.32em] text-muted-foreground">
+            Database
+          </p>
+          <h2 className="mt-4 font-serif text-4xl tracking-[-0.05em]">
+            Backup and restore
+          </h2>
+          <div className="mt-5">
+            <DatabaseBackupForm />
+          </div>
         </div>
       </div>
     </AdminShell>

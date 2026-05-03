@@ -84,8 +84,12 @@ The admin settings page supports:
 
 - Changing the admin email
 - Changing the admin password
+- Downloading the current SQLite database
+- Uploading a SQLite database to overwrite the current database
 
 Changing credentials clears existing admin sessions, including the current one, so sign in again after saving.
+
+Database uploads validate the SQLite file header before replacing the configured database file. Restoring a database redirects to admin sign-in because the active session may no longer exist in the restored database.
 
 ### Resetting an Admin Password
 
