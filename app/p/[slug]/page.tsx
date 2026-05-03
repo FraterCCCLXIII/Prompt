@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AsciiLogo } from "@/components/AsciiLogo";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { FloatingPostActions } from "@/components/FloatingPostActions";
 import { PostDisplay } from "@/components/PostDisplay";
+import { SiteLogoMenu } from "@/components/SiteLogoMenu";
 import {
   getAdjacentPost,
   getPostBySlug,
@@ -35,13 +34,7 @@ export default async function PostPage({ params }: PostPageProps) {
   return (
     <main className="flex min-h-dvh flex-col pb-28">
       <div className="flex items-center justify-between px-5 py-4 sm:px-8">
-        <Link
-          href="/"
-          aria-label="Prompt home"
-          className="text-2xl leading-none text-foreground transition hover:text-muted-foreground"
-        >
-          <AsciiLogo />
-        </Link>
+        <SiteLogoMenu />
         <CopyLinkButton slug={post.slug} label="Share" />
       </div>
 

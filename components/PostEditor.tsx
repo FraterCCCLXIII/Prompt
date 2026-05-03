@@ -1,17 +1,20 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Loader2, Shuffle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, RefreshCw, Shuffle } from "lucide-react";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { createPostAction, type CreatePostState } from "@/app/actions/posts";
-import { AsciiLogo } from "@/components/AsciiLogo";
+import { SiteLogoMenu } from "@/components/SiteLogoMenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { VisibilityDropdown } from "@/components/VisibilityDropdown";
+import { getWritingPrompts } from "@/lib/writing-prompts";
+import { cn } from "@/lib/utils";
 
 type PostEditorProps = {
   hasViewerPost: boolean;
+  writingPrompt: string;
   previousSlug?: string | null;
   randomSlug?: string | null;
   nextSlug?: string | null;
@@ -21,26 +24,55 @@ const initialState: CreatePostState = {};
 
 export function PostEditor({
   hasViewerPost,
+  writingPrompt,
   previousSlug,
   randomSlug,
   nextSlug,
 }: PostEditorProps) {
+  const prompts = useMemo(() => getWritingPrompts(), []);
+  const [currentPrompt, setCurrentPrompt] = useState(writingPrompt);
   const [state, formAction, isPending] = useActionState(
     createPostAction,
     initialState,
   );
+  const promptSizeClass =
+    currentPrompt.length > 82
+      ? "text-3xl md:text-5xl"
+      : currentPrompt.length > 58
+        ? "text-4xl md:text-6xl"
+        : "text-5xl md:text-7xl";
+
+  function refreshPrompt() {
+    const availablePrompts = prompts.filter((prompt) => prompt !== currentPrompt);
+    const nextPrompt =
+      availablePrompts[Math.floor(Math.random() * availablePrompts.length)] ??
+      currentPrompt;
+
+    setCurrentPrompt(nextPrompt);
+  }
 
   return (
-    <section className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col justify-center px-5 py-8 pb-28 sm:px-8">
-      <div
-        className="absolute left-5 top-4 text-2xl leading-none text-foreground sm:left-8"
-        aria-label="Prompt"
-      >
-        <AsciiLogo />
-      </div>
-      <div className="mb-10 text-center">
-        <h1 className="font-serif text-5xl tracking-[-0.05em] text-foreground md:text-7xl">
-          Say only what matters.
+    <section className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col justify-center px-5 pb-28 pt-24 sm:px-8">
+      <SiteLogoMenu className="absolute left-5 top-4 sm:left-8" />
+      <div className="group mb-10 text-center">
+        <h1
+          className={cn(
+            "font-serif leading-[1.05] tracking-[-0.05em] text-foreground transition-all",
+            promptSizeClass,
+          )}
+        >
+          <button
+            type="button"
+            onClick={refreshPrompt}
+            className="inline cursor-pointer text-center font-inherit text-inherit tracking-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
+            aria-label="Show another writing prompt"
+          >
+            {currentPrompt}
+            <RefreshCw
+              className="ml-3 inline size-4 translate-y-[-0.12em] opacity-0 transition-opacity group-hover:opacity-100"
+              aria-hidden="true"
+            />
+          </button>
         </h1>
       </div>
 

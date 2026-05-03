@@ -5,6 +5,7 @@ import { type DisplayPost } from "@/components/PostDisplay";
 
 type PromptHomeProps = {
   initialViewerPost: DisplayPost | null;
+  writingPrompt: string;
   previousSlug?: string | null;
   randomSlug?: string | null;
   nextSlug?: string | null;
@@ -12,6 +13,7 @@ type PromptHomeProps = {
 
 export function PromptHome({
   initialViewerPost,
+  writingPrompt,
   previousSlug,
   randomSlug,
   nextSlug,
@@ -19,6 +21,7 @@ export function PromptHome({
   return (
     <PostEditor
       hasViewerPost={Boolean(initialViewerPost)}
+      writingPrompt={writingPrompt}
       previousSlug={previousSlug}
       randomSlug={randomSlug}
       nextSlug={nextSlug}

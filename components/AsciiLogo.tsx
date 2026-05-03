@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 
-const LOGO_FRAMES = ["░", "▒", "▓", "█"] as const;
+const ANIMATION_FRAMES = ["░", "▒", "▓", "█", "▓", "▒"] as const;
 
 export function AsciiLogo() {
   const [frameIndex, setFrameIndex] = useState(0);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      setFrameIndex((currentIndex) => (currentIndex + 1) % LOGO_FRAMES.length);
+      setFrameIndex((currentIndex) => (currentIndex + 1) % ANIMATION_FRAMES.length);
     }, 500);
 
     return () => window.clearInterval(intervalId);
@@ -17,7 +17,7 @@ export function AsciiLogo() {
 
   return (
     <span aria-hidden="true" className="inline-block w-[1ch] font-mono">
-      {LOGO_FRAMES[frameIndex]}
+      {ANIMATION_FRAMES[frameIndex]}
     </span>
   );
 }

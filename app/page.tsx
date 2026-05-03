@@ -1,5 +1,6 @@
 import { PromptHome } from "@/components/PromptHome";
 import { getAdjacentPost, getRandomPost, type PublicPost } from "@/lib/posts";
+import { getRandomWritingPrompt } from "@/lib/writing-prompts";
 
 function serializePost(post: PublicPost | null) {
   if (!post) {
@@ -25,6 +26,7 @@ export default async function Home() {
   return (
     <PromptHome
       initialViewerPost={serializePost(initialViewerPost)}
+      writingPrompt={getRandomWritingPrompt()}
       previousSlug={previousPost?.slug}
       randomSlug={randomPost?.slug}
       nextSlug={nextPost?.slug}

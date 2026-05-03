@@ -140,6 +140,16 @@ export async function getRandomPost(excludeSlug?: string | null) {
   return posts[Math.floor(Math.random() * posts.length)];
 }
 
+export async function getMostRecentPublicPost() {
+  noStore();
+
+  return prisma.post.findFirst({
+    where: { visibility: "public" },
+    select: postSelect,
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+  });
+}
+
 export async function getAdjacentPost(slug: string, direction: "previous" | "next") {
   noStore();
 
