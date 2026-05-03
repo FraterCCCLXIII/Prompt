@@ -256,11 +256,42 @@ available at build time: npm skips `devDependencies` when `NODE_ENV` is
 `production`, and the Docker build needs build-time packages such as
 `@tailwindcss/postcss` for `npm run build`.
 
-Add persistent storage mounted at:
+Add persistent storage before relying on production data. In Coolify, use
+**Storages -> Add -> Directory Mount**:
 
 ```text
-/data
+Source Directory: /data/coolify/applications/ic4kssssksswc4ocokkcgccg/data
+Destination Directory: /data
 ```
+
+The exact source directory can use any stable host path, but it must be outside
+the disposable container filesystem. The destination must be `/data` because
+`DATABASE_URL` points to `file:/data/prompt.db`.
+
+If the app was already deployed before storage was mounted, copy the live
+container database into the mounted source directory before redeploying:
+
+```bash
+ssh telepathy
+mkdir -p /data/coolify/applications/ic4kssssksswc4ocokkcgccg/data
+docker cp ic4kssssksswc4ocokkcgccg-212528356688:/data/prompt.db \
+  /data/coolify/applications/ic4kssssksswc4ocokkcgccg/data/prompt.db
+```
+
+The container name changes after deploys. If needed, find the current container:
+
+```bash
+docker ps | grep ic4kssssksswc4ocokkcgccg
+```
+
+After adding storage and redeploying, verify the container has a mount:
+
+```bash
+docker inspect <container-name> --format '{{json .Mounts}}'
+```
+
+If `.Mounts` is empty, SQLite is still inside the disposable container and data
+will be lost on the next redeploy.
 
 The Docker image uses Node 22, installs dependencies with `npm ci`, builds the Next.js app, exposes port `3000`, and starts with:
 
