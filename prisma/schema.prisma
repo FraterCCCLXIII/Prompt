@@ -59,3 +59,12 @@ model BannedIp {
   reason    String?
   createdAt DateTime @default(now())
 }
+
+model SpamSettings {
+  id                      String   @id
+  maxPostsPerDay          Int      @default(10)
+  cooldownSeconds         Int      @default(60)
+  duplicateWindowHours    Int      @default(24)
+  autoHideReportThreshold Int      @default(3)
+  updatedAt               DateTime @updatedAt
+}

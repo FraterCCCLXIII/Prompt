@@ -2,6 +2,7 @@ import { unstable_noStore as noStore } from "next/cache";
 import { MAX_POST_LENGTH } from "@/lib/post-constants";
 import { prisma } from "@/lib/prisma";
 import { encodeSlugSequence } from "@/lib/slugs";
+import { getSpamSettings } from "@/lib/spam-settings";
 
 export { MAX_POST_LENGTH };
 
@@ -83,6 +84,63 @@ export async function createPost(input: {
 
     if (bannedIp) {
       throw new Error("Posting from this network is currently unavailable.");
+    }
+
+    const settings = await getSpamSettings();
+    const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    if (settings.maxPostsPerDay > 0) {
+      const postsToday = await prisma.post.count({
+        where: {
+          ipAddress: input.ipAddress,
+          createdAt: { gte: startOfDay },
+        },
+      });
+
+      if (postsToday >= settings.maxPostsPerDay) {
+        throw new Error(
+          `This network has reached today's limit of ${settings.maxPostsPerDay} posts.`,
+        );
+      }
+    }
+
+    if (settings.cooldownSeconds > 0) {
+      const latestPost = await prisma.post.findFirst({
+        where: { ipAddress: input.ipAddress },
+        select: { createdAt: true },
+        orderBy: { createdAt: "desc" },
+      });
+      const elapsedSeconds = latestPost
+        ? Math.floor((now.getTime() - latestPost.createdAt.getTime()) / 1000)
+        : settings.cooldownSeconds;
+
+      if (elapsedSeconds < settings.cooldownSeconds) {
+        throw new Error(
+          `Please wait ${settings.cooldownSeconds - elapsedSeconds} more seconds before posting again.`,
+        );
+      }
+    }
+
+    if (settings.duplicateWindowHours > 0) {
+      const duplicateWindowStart = new Date(
+        now.getTime() - settings.duplicateWindowHours * 60 * 60 * 1000,
+      );
+      const duplicatePost = await prisma.post.findFirst({
+        where: {
+          ipAddress: input.ipAddress,
+          content,
+          createdAt: { gte: duplicateWindowStart },
+        },
+        select: { id: true },
+      });
+
+      if (duplicatePost) {
+        throw new Error(
+          `This network has already posted the same text in the last ${settings.duplicateWindowHours} hours.`,
+        );
+      }
     }
   }
 

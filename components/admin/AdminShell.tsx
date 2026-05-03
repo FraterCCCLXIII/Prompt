@@ -7,13 +7,14 @@ import { cn } from "@/lib/utils";
 
 type AdminShellProps = {
   email: string;
-  active: "posts" | "settings" | "ip-bans";
+  active: "posts" | "ip-bans" | "spam-settings" | "settings";
   children: React.ReactNode;
 };
 
 const navItems = [
   { href: "/admin", label: "Posts", active: "posts" },
   { href: "/admin/ip-bans", label: "IP bans", active: "ip-bans" },
+  { href: "/admin/spam-settings", label: "Spam settings", active: "spam-settings" },
   { href: "/admin/settings", label: "Admin settings", active: "settings" },
 ] as const;
 

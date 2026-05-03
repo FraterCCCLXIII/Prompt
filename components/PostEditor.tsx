@@ -31,6 +31,7 @@ export function PostEditor({
 }: PostEditorProps) {
   const prompts = useMemo(() => getWritingPrompts(), []);
   const [currentPrompt, setCurrentPrompt] = useState(writingPrompt);
+  const [dismissedError, setDismissedError] = useState<string | null>(null);
   const [state, formAction, isPending] = useActionState(
     createPostAction,
     initialState,
@@ -50,6 +51,8 @@ export function PostEditor({
 
     setCurrentPrompt(nextPrompt);
   }
+
+  const showErrorModal = Boolean(state.error && state.error !== dismissedError);
 
   return (
     <section className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col justify-center px-5 pb-28 pt-24 sm:px-8">
@@ -147,6 +150,34 @@ export function PostEditor({
           </Button>
         )}
       </nav>
+      {state.error && showErrorModal ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/20 px-5 backdrop-blur-sm">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="posting-limit-title"
+            className="w-full max-w-md rounded-[2rem] border border-border bg-background p-6 text-center shadow-xl"
+          >
+            <p className="text-sm uppercase tracking-[0.32em] text-muted-foreground">
+              Posting paused
+            </p>
+            <h2
+              id="posting-limit-title"
+              className="mt-4 font-serif text-4xl tracking-[-0.05em]"
+            >
+              Give it a little room.
+            </h2>
+            <p className="mt-4 text-muted-foreground">{state.error}</p>
+            <Button
+              type="button"
+              className="mt-6"
+              onClick={() => setDismissedError(state.error ?? null)}
+            >
+              OK
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
