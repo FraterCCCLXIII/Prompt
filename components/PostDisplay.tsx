@@ -1,5 +1,4 @@
-import { Flag } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ReportButton } from "@/components/ReportButton";
 import { cn } from "@/lib/utils";
 
 export type DisplayPost = {
@@ -65,16 +64,7 @@ export function PostDisplay({ post, className, showDate = true }: PostDisplayPro
             {formattedDate}
           </time>
         ) : null}
-        <Button
-          type="button"
-          variant="ghost"
-          size="default"
-          className="text-muted-foreground"
-          aria-label="Report this post"
-        >
-          <Flag className="size-4" aria-hidden="true" />
-          Report
-        </Button>
+        <ReportButton slug={post.slug} />
       </div>
     </article>
   );

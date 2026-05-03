@@ -22,7 +22,7 @@ const postSelect = {
 } satisfies Record<keyof PublicPost, true>;
 
 const SLUG_COUNTER_NAME = "post";
-const POST_VISIBILITIES = ["public", "link-only"] as const;
+const POST_VISIBILITIES = ["public", "link-only", "hidden"] as const;
 
 export type PostVisibility = (typeof POST_VISIBILITIES)[number];
 
@@ -66,12 +66,24 @@ export async function createPost(input: {
   title?: string | null;
   content: string;
   visibility?: PostVisibility;
+  ipAddress?: string | null;
 }) {
   const content = normalizePostContent(input.content);
   const error = validatePostContent(content);
 
   if (error) {
     throw new Error(error);
+  }
+
+  if (input.ipAddress) {
+    const bannedIp = await prisma.bannedIp.findUnique({
+      where: { ipAddress: input.ipAddress },
+      select: { id: true },
+    });
+
+    if (bannedIp) {
+      throw new Error("Posting from this network is currently unavailable.");
+    }
   }
 
   return prisma.$transaction(async (tx) => {
@@ -89,6 +101,7 @@ export async function createPost(input: {
         title: normalizeOptionalTitle(input.title ?? null),
         content,
         visibility: input.visibility ?? "public",
+        ipAddress: input.ipAddress ?? null,
       },
       select: postSelect,
     });
@@ -98,8 +111,8 @@ export async function createPost(input: {
 export async function getPostBySlug(slug: string) {
   noStore();
 
-  return prisma.post.findUnique({
-    where: { slug },
+  return prisma.post.findFirst({
+    where: { slug, NOT: { visibility: "hidden" } },
     select: postSelect,
   });
 }

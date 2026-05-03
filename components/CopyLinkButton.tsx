@@ -153,6 +153,7 @@ export function CopyLinkButton({
         disabled={isPending}
         aria-haspopup="menu"
         aria-expanded={open}
+        className="pr-5"
       >
         {copied ? (
           <Check className="size-4" aria-hidden="true" />
@@ -161,7 +162,7 @@ export function CopyLinkButton({
         )}
         {copied ? "Copied" : label}
         <ChevronDown
-          className={cn("size-4 transition-transform", open && "rotate-180")}
+          className={cn("size-4 shrink-0 transition-transform", open && "rotate-180")}
           aria-hidden="true"
         />
       </Button>

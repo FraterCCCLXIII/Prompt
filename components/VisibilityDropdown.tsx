@@ -58,12 +58,12 @@ export function VisibilityDropdown() {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listboxId}
-        className="inline-flex h-12 items-center justify-between gap-3 rounded-full border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
+        className="inline-flex h-12 items-center justify-between gap-3 rounded-full border border-border bg-background py-2 pl-4 pr-5 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
         onClick={() => setOpen((currentOpen) => !currentOpen)}
       >
         <span>{selectedOption?.label}</span>
         <ChevronDown
-          className={cn("size-4 transition-transform", open && "rotate-180")}
+          className={cn("size-4 shrink-0 transition-transform", open && "rotate-180")}
           aria-hidden="true"
         />
       </button>

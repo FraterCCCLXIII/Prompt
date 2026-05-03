@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getRequestIp } from "@/lib/request-ip";
 import {
   createPost,
   normalizeOptionalTitle,
@@ -26,7 +27,21 @@ export async function createPostAction(
     return { error };
   }
 
-  const post = await createPost({ title, content, visibility });
+  const post = await createPost({
+      title,
+      content,
+      visibility,
+      ipAddress: await getRequestIp(),
+    }).catch((createError: unknown) => ({
+      error:
+        createError instanceof Error
+          ? createError.message
+          : "Unable to create this post.",
+    }));
+
+  if ("error" in post) {
+    return post;
+  }
 
   redirect(`/p/${post.slug}`);
 }

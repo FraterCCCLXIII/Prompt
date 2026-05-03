@@ -14,12 +14,48 @@ model Post {
   content     String
   createdAt   DateTime @default(now())
   visibility  String   @default("public")
+  ipAddress   String?
   viewsCount  Int      @default(0)
   shareCount  Int      @default(0)
+  reportCount Int      @default(0)
+  reportedAt  DateTime?
+  hiddenAt    DateTime?
+
+  @@index([createdAt])
+  @@index([ipAddress])
+  @@index([visibility])
 }
 
 model SlugCounter {
   name      String   @id
   nextValue BigInt   @default(0)
   updatedAt DateTime @updatedAt
+}
+
+model AdminUser {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  passwordHash String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sessions     AdminSession[]
+}
+
+model AdminSession {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  adminId   String
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+
+  @@index([adminId])
+  @@index([expiresAt])
+}
+
+model BannedIp {
+  id        String   @id @default(cuid())
+  ipAddress String   @unique
+  reason    String?
+  createdAt DateTime @default(now())
 }
