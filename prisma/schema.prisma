@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String?
+  content     String
+  createdAt   DateTime @default(now())
+  visibility  String   @default("public")
+  viewsCount  Int      @default(0)
+  shareCount  Int      @default(0)
+}
+
+model SlugCounter {
+  name      String   @id
+  nextValue BigInt   @default(0)
+  updatedAt DateTime @updatedAt
+}
