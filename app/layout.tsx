@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Newsreader } from "next/font/google";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { getAppSettings } from "@/lib/app-settings";
 import "./globals.css";
 
 const inter = Inter({
@@ -17,14 +19,20 @@ export const metadata: Metadata = {
   description: "Minimal anonymous text posts with shareable links.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const appSettings = await getAppSettings();
+  const googleAnalyticsMeasurementId = appSettings.googleAnalyticsEnabled
+    ? appSettings.googleAnalyticsMeasurementId
+    : null;
+
   return (
     <html lang="en">
       <body className={`${inter.variable} ${newsreader.variable} antialiased`}>
+        <GoogleAnalytics measurementId={googleAnalyticsMeasurementId} />
         {children}
       </body>
     </html>

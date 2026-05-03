@@ -89,3 +89,10 @@ model SpamSettings {
   autoHideReportThreshold Int      @default(3)
   updatedAt               DateTime @updatedAt
 }
+
+model AppSettings {
+  id                           String   @id
+  googleAnalyticsEnabled       Boolean  @default(false)
+  googleAnalyticsMeasurementId String?
+  updatedAt                    DateTime @updatedAt
+}

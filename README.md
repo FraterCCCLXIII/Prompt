@@ -49,6 +49,32 @@ Prompt is a minimalist anonymous posting app. Anyone can write a text post, save
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Coolify Deployment
+
+Prompt includes a `Dockerfile` for Coolify. Use a Dockerfile-based app and expose
+port `3000`.
+
+Set these environment variables in Coolify:
+
+```bash
+DATABASE_URL="file:/data/prompt.db"
+PROMPT_ADMIN_SETUP_SECRET="use-a-long-random-secret"
+PROMPT_TRUST_PROXY_HEADERS="true"
+NODE_ENV="production"
+```
+
+Add persistent storage in Coolify:
+
+```text
+/data
+```
+
+On container start, `npm run start:coolify` creates the database directory,
+runs `prisma migrate deploy`, and starts Next.js on `0.0.0.0:$PORT`.
+
+After the first deploy, visit `/admin/setup` and use the setup secret to create
+the first admin account.
+
 ## Routes
 
 - `/` creates a post and links into public reading navigation.
