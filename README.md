@@ -251,6 +251,11 @@ NODE_ENV="production"
 PORT="3000"
 ```
 
+In Coolify, keep `NODE_ENV=production` runtime-only. Do not mark it as
+available at build time: npm skips `devDependencies` when `NODE_ENV` is
+`production`, and the Docker build needs build-time packages such as
+`@tailwindcss/postcss` for `npm run build`.
+
 Add persistent storage mounted at:
 
 ```text
