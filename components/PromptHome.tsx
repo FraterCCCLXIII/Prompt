@@ -22,6 +22,7 @@ export function PromptHome({
     <PostEditor
       hasViewerPost={Boolean(initialViewerPost)}
       writingPrompt={writingPrompt}
+      scrollDownHref="/read"
       previousSlug={previousSlug}
       randomSlug={randomSlug}
       nextSlug={nextSlug}

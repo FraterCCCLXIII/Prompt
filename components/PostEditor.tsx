@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useActionState, useMemo, useState } from "react";
 import { createPostAction, type CreatePostState } from "@/app/actions/posts";
 import { SiteLogoMenu } from "@/components/SiteLogoMenu";
+import { ScrollPageNavigation } from "@/components/ScrollPageNavigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +16,8 @@ import { cn } from "@/lib/utils";
 type PostEditorProps = {
   hasViewerPost: boolean;
   writingPrompt: string;
+  scrollUpHref?: string | null;
+  scrollDownHref?: string | null;
   previousSlug?: string | null;
   randomSlug?: string | null;
   nextSlug?: string | null;
@@ -25,6 +28,8 @@ const initialState: CreatePostState = {};
 export function PostEditor({
   hasViewerPost,
   writingPrompt,
+  scrollUpHref,
+  scrollDownHref,
   previousSlug,
   randomSlug,
   nextSlug,
@@ -56,6 +61,7 @@ export function PostEditor({
 
   return (
     <section className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col justify-center px-5 pb-28 pt-24 sm:px-8">
+      <ScrollPageNavigation upHref={scrollUpHref} downHref={scrollDownHref} />
       <SiteLogoMenu className="absolute left-5 top-4 sm:left-8" />
       <div className="group mb-10 text-center">
         <h1

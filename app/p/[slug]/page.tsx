@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { FloatingPostActions } from "@/components/FloatingPostActions";
 import { PostDisplay } from "@/components/PostDisplay";
+import { ScrollPageNavigation } from "@/components/ScrollPageNavigation";
 import { SiteLogoMenu } from "@/components/SiteLogoMenu";
 import {
   getAdjacentPost,
@@ -33,6 +34,10 @@ export default async function PostPage({ params }: PostPageProps) {
 
   return (
     <main className="flex min-h-dvh flex-col pb-28">
+      <ScrollPageNavigation
+        upHref={previousPost ? `/p/${previousPost.slug}` : null}
+        downHref={nextPost ? `/p/${nextPost.slug}` : null}
+      />
       <div className="flex items-center justify-between px-5 py-4 sm:px-8">
         <SiteLogoMenu />
         <CopyLinkButton slug={post.slug} label="Share" />
