@@ -8,12 +8,10 @@ type ScrollPageNavigationProps = {
   downHref?: string | null;
 };
 
-const HORIZONTAL_WHEEL_THRESHOLD = 90;
-const HORIZONTAL_TOUCH_THRESHOLD = 60;
+const WHEEL_THRESHOLD = 90;
+const TOUCH_THRESHOLD = 60;
 const RESET_DELAY_MS = 250;
-const NAVIGATION_COOLDOWN_MS = 900;
 const NAV_DIRECTION_ATTRIBUTE = "data-post-nav-direction";
-let lastNavigationAt = 0;
 
 type HorizontalDirection = "left" | "right";
 
@@ -38,9 +36,9 @@ function isInteractiveTarget(target: EventTarget | null) {
 export function ScrollPageNavigation({ upHref, downHref }: ScrollPageNavigationProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const horizontalWheelDeltaRef = useRef(0);
+  const wheelDeltaRef = useRef(0);
   const wheelResetTimerRef = useRef<number | null>(null);
-  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
   const isNavigatingRef = useRef(false);
 
   useEffect(() => {
@@ -49,17 +47,11 @@ export function ScrollPageNavigation({ upHref, downHref }: ScrollPageNavigationP
 
   useEffect(() => {
     function navigate(href: string | null | undefined, direction: HorizontalDirection) {
-      if (
-        !href ||
-        isNavigatingRef.current ||
-        href === pathname ||
-        Date.now() - lastNavigationAt < NAVIGATION_COOLDOWN_MS
-      ) {
+      if (!href || isNavigatingRef.current || href === pathname) {
         return false;
       }
 
       isNavigatingRef.current = true;
-      lastNavigationAt = Date.now();
       document.documentElement.setAttribute(NAV_DIRECTION_ATTRIBUTE, direction);
       const documentWithViewTransition = document as DocumentWithViewTransition;
       const startTransition = documentWithViewTransition.startViewTransition;
@@ -81,7 +73,7 @@ export function ScrollPageNavigation({ upHref, downHref }: ScrollPageNavigationP
     }
 
     function resetWheelAccumulation() {
-      horizontalWheelDeltaRef.current = 0;
+      wheelDeltaRef.current = 0;
       if (wheelResetTimerRef.current) {
         window.clearTimeout(wheelResetTimerRef.current);
         wheelResetTimerRef.current = null;
@@ -94,7 +86,7 @@ export function ScrollPageNavigation({ upHref, downHref }: ScrollPageNavigationP
       }
 
       wheelResetTimerRef.current = window.setTimeout(() => {
-        horizontalWheelDeltaRef.current = 0;
+        wheelDeltaRef.current = 0;
         wheelResetTimerRef.current = null;
       }, RESET_DELAY_MS);
     }
@@ -104,21 +96,16 @@ export function ScrollPageNavigation({ upHref, downHref }: ScrollPageNavigationP
         return;
       }
 
-      if (Date.now() - lastNavigationAt < NAVIGATION_COOLDOWN_MS) {
-        resetWheelAccumulation();
-        return;
-      }
-
-      horizontalWheelDeltaRef.current += event.deltaX;
+      wheelDeltaRef.current += event.deltaY;
       scheduleReset();
 
-      if (horizontalWheelDeltaRef.current >= HORIZONTAL_WHEEL_THRESHOLD) {
+      if (wheelDeltaRef.current >= WHEEL_THRESHOLD) {
         const didNavigate = navigate(downHref, "left");
         if (didNavigate) {
           event.preventDefault();
         }
         resetWheelAccumulation();
-      } else if (horizontalWheelDeltaRef.current <= -HORIZONTAL_WHEEL_THRESHOLD) {
+      } else if (wheelDeltaRef.current <= -WHEEL_THRESHOLD) {
         const didNavigate = navigate(upHref, "right");
         if (didNavigate) {
           event.preventDefault();
@@ -128,30 +115,26 @@ export function ScrollPageNavigation({ upHref, downHref }: ScrollPageNavigationP
     }
 
     function handleTouchStart(event: TouchEvent) {
-      touchStartXRef.current = event.changedTouches[0]?.clientX ?? null;
+      touchStartYRef.current = event.changedTouches[0]?.clientY ?? null;
     }
 
     function handleTouchEnd(event: TouchEvent) {
-      const touchStartX = touchStartXRef.current;
-      touchStartXRef.current = null;
+      const touchStartY = touchStartYRef.current;
+      touchStartYRef.current = null;
 
-      if (touchStartX === null || isInteractiveTarget(event.target)) {
+      if (touchStartY === null || isInteractiveTarget(event.target)) {
         return;
       }
 
-      if (Date.now() - lastNavigationAt < NAVIGATION_COOLDOWN_MS) {
+      const touchEndY = event.changedTouches[0]?.clientY;
+      if (typeof touchEndY !== "number") {
         return;
       }
 
-      const touchEndX = event.changedTouches[0]?.clientX;
-      if (typeof touchEndX !== "number") {
-        return;
-      }
-
-      const deltaX = touchStartX - touchEndX;
-      if (deltaX >= HORIZONTAL_TOUCH_THRESHOLD) {
+      const deltaY = touchStartY - touchEndY;
+      if (deltaY >= TOUCH_THRESHOLD) {
         navigate(downHref, "left");
-      } else if (deltaX <= -HORIZONTAL_TOUCH_THRESHOLD) {
+      } else if (deltaY <= -TOUCH_THRESHOLD) {
         navigate(upHref, "right");
       }
     }

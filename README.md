@@ -54,6 +54,8 @@ Supported variables:
 - `DATABASE_URL`: SQLite file URL. Local default is `file:./dev.db`.
 - `PROMPT_ADMIN_SETUP_SECRET`: Secret required when creating the first admin account. Set this to a long random value before exposing the app publicly.
 - `PROMPT_TRUST_PROXY_HEADERS`: Set to `true` only when the app is behind a trusted proxy or CDN that strips client-supplied forwarding headers.
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY`: Optional Cloudflare Turnstile site key shown on the post form.
+- `TURNSTILE_SECRET_KEY`: Optional Cloudflare Turnstile secret key used to verify the captcha token on submission.
 - `NODE_ENV`: Set by Next.js or the deployment environment. Production sessions and report cookies use secure cookies when this is `production`.
 - `PORT`: Used by deployment startup. Defaults to `3000` in the Docker image and Coolify script.
 - `BIND_HOST`: Used by `scripts/coolify-start.sh`. Defaults to `0.0.0.0`.
@@ -183,6 +185,8 @@ Reports are tracked in `PostReport` and deduplicated per reporter. If trusted IP
 
 Post content is normalized by trimming whitespace and removing null bytes. Empty posts are rejected. Titles are optional and capped at 120 characters.
 
+If `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is set, the write form renders a Cloudflare Turnstile challenge and post creation requires a valid captcha token verified using `TURNSTILE_SECRET_KEY`.
+
 The code defines `MAX_POST_LENGTH` as 2,000 characters, but the active content-length check is currently disabled so long-form posts can be tested.
 
 When a post is created, Prompt applies the configured spam settings to the captured IP address. If trusted IP headers are disabled or unavailable, posts are grouped into an unknown-IP bucket so rate limits still apply instead of being skipped.
@@ -247,6 +251,8 @@ Recommended Coolify environment:
 DATABASE_URL="file:/data/prompt.db"
 PROMPT_ADMIN_SETUP_SECRET="use-a-long-random-secret"
 PROMPT_TRUST_PROXY_HEADERS="true"
+NEXT_PUBLIC_TURNSTILE_SITE_KEY="your-turnstile-site-key"
+TURNSTILE_SECRET_KEY="your-turnstile-secret-key"
 NODE_ENV="production"
 PORT="3000"
 ```

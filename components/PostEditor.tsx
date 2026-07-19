@@ -6,6 +6,7 @@ import { useActionState, useMemo, useState } from "react";
 import { createPostAction, type CreatePostState } from "@/app/actions/posts";
 import { SiteLogoMenu } from "@/components/SiteLogoMenu";
 import { ScrollPageNavigation } from "@/components/ScrollPageNavigation";
+import { TurnstileCaptcha } from "@/components/TurnstileCaptcha";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,6 +25,7 @@ type PostEditorProps = {
 };
 
 const initialState: CreatePostState = {};
+const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
 
 export function PostEditor({
   hasViewerPost,
@@ -99,6 +101,7 @@ export function PostEditor({
           // maxLength={MAX_POST_LENGTH + 1}
           required
         />
+        {turnstileSiteKey ? <TurnstileCaptcha siteKey={turnstileSiteKey} /> : null}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-h-6 text-sm">
             {state.error ? (
