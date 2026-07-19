@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 type PostEditorProps = {
   hasViewerPost: boolean;
   writingPrompt: string;
+  turnstileSiteKey?: string;
   scrollUpHref?: string | null;
   scrollDownHref?: string | null;
   previousSlug?: string | null;
@@ -25,11 +26,11 @@ type PostEditorProps = {
 };
 
 const initialState: CreatePostState = {};
-const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
 
 export function PostEditor({
   hasViewerPost,
   writingPrompt,
+  turnstileSiteKey,
   scrollUpHref,
   scrollDownHref,
   previousSlug,

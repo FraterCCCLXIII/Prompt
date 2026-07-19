@@ -14,6 +14,7 @@ function serializePost(post: PublicPost | null) {
 }
 
 export default async function Home() {
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
   const initialViewerPost = await getRandomPost();
   const [previousPost, randomPost, nextPost] = initialViewerPost
     ? await Promise.all([
@@ -27,6 +28,7 @@ export default async function Home() {
     <PromptHome
       initialViewerPost={serializePost(initialViewerPost)}
       writingPrompt={getRandomWritingPrompt()}
+      turnstileSiteKey={turnstileSiteKey}
       previousSlug={previousPost?.slug}
       randomSlug={randomPost?.slug}
       nextSlug={nextPost?.slug}
